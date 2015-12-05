@@ -1,0 +1,8 @@
+<%= render "header" %>
+<div>
+<% photos.each do |photo| %>
+  <div><img src='<%= photo.alt_sizes.first.url %>'></div>
+<% end %>
+</div>
+<p><%= caption %></p>
+<%= render "footer" %>

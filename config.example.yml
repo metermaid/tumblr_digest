@@ -1,0 +1,10 @@
+--- 
+from_email: email@email.com
+sendgrid_key: KEY
+to_email: email@email.com
+tumblr: 
+  - 
+    consumer_key: KEY
+    consumer_secret: SECRET
+    oauth_token: TOKEN
+    oauth_token_secret: SECRET
