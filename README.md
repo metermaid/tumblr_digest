@@ -2,7 +2,12 @@
 sends you the last day's worth of tumblr posts, so Rita will stop obsessively checking tumblr
 
 ## instructions
-uhh this isn't really for other people to use, but install all the gems (sorry no bundle rn) and make a config yml (sign up for sendgrid and the tumblr api) and make a blacklist.txt (follow those examples)
+uhh this isn't really for other people to use, but make a config yml (sign up for sendgrid and the tumblr api) and make a blacklist.txt (follow those examples)
+
+```gem install bundler
+bundle install
+ruby tumblr_digest.rb
+```
 
 ## FAQ
 
