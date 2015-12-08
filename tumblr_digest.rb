@@ -14,12 +14,12 @@ require 'css_parser'
 require 'inline-style'
 require 'sendgrid-ruby'
 
-blacklist = File.read('blacklist.txt').lines.map &:split
-config_vars = YAML.load_file('config.yml')
+blacklist = File.readlines(__dir__ + '/blacklist.txt').map(&:strip)
+config_vars = YAML.load_file(__dir__ + '/config.yml')
 
 class Post < SimpleDelegator
   def render(file)
-    template = ERB.new File.new("templates/posts/#{file}.erb").read, nil, "%"
+    template = ERB.new File.new(__dir__ + "/templates/posts/#{file}.erb").read, nil, "%"
     return template.result(binding)
   end
 
@@ -41,8 +41,8 @@ num_posts = 20
 posts = []
 body = ""
 offset = 0
-last_timestamp = Date.today.to_time.to_i
-day_ago = Date.today.prev_day.to_time.to_i
+last_timestamp = Time.now.getutc.to_i
+day_ago = last_timestamp - 86400
 
 while last_timestamp > day_ago
   results = client.dashboard(limit: num_posts, offset: offset)
@@ -50,7 +50,11 @@ while last_timestamp > day_ago
   posts.concat(results['posts'])
 
   offset += num_posts
-  last_timestamp = results['posts'].last['timestamp']
+  if (results['posts'].last['timestamp'] < last_timestamp)
+    last_timestamp = results['posts'].last['timestamp']
+  else
+    break
+  end
 end
 
 posts_hash = posts.select {|post| post['timestamp'] > day_ago }
@@ -58,13 +62,13 @@ posts_hash = posts.select {|post| (post['tags'] & blacklist).empty? }
 
 posts = JSON.parse(posts_hash.to_json, object_class: OpenStruct)
 
-body << File.new("templates/email_header.html").read
+body << File.new(__dir__ + "/templates/email_header.html").read
 
 posts.each do |post|
   body << Post.new(post).to_s
 end
 
-body << File.new("templates/email_footer.html").read
+body << File.new(__dir__ + "/templates/email_footer.html").read
 
 client = SendGrid::Client.new do |c|
   c.api_key = config_vars["sendgrid_key"]
@@ -74,7 +78,7 @@ mail = SendGrid::Mail.new do |m|
   m.to = config_vars["to_email"]
   m.from = config_vars["from_email"]
   m.subject = "Tumblr Digest for #{Date.today.strftime('%A, %b %e')}"
-  m.text = InlineStyle.process(body)
+  m.html = InlineStyle.process(body)
 end
 
 res = client.send(mail)
